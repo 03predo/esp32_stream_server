@@ -1,0 +1,3 @@
+[submodule "main/esp32_config"]
+	path = main/esp32_config
+	url = git@github.com:03predo/esp32_config.git

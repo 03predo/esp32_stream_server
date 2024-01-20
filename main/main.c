@@ -15,9 +15,10 @@
 #include "wifi.h"
 #include "ov7670.h"
 
+
 #define PORT 2848
 
-#define IMAGE_SEGMENT_NUM 4
+#define IMAGE_SEGMENT_NUM 2
 #define IMAGE_SEGMENT_SIZE (IMAGE_SIZE_BYTES / IMAGE_SEGMENT_NUM)
 
 #define START       0x0
@@ -70,7 +71,7 @@ void app_main(void)
 
     ov7670_frame_t frame;
     while(1){
-        ESP_LOGI(TAG, "waiting for message from client");
+        ESP_LOGD(TAG, "waiting for message from client");
         uint8_t client_msg[2];
         int bytes_received = recvfrom(fd, client_msg, sizeof(client_msg), 0, (struct sockaddr*) &client_addr, &client_struct_length);
         if(bytes_received == -1){
@@ -79,17 +80,17 @@ void app_main(void)
         }
 
         if(client_msg[0] == START){
-            ESP_LOGI(TAG, "received START from client, capturing new frame");
+            ESP_LOGD(TAG, "received START from client, capturing new frame");
             if(ov7670_release(&frame) != ESP_OK){
-                ESP_LOGI(TAG, "failed release");
+                ESP_LOGE(TAG, "failed release");
             }
             while(ov7670_capture(&frame) != ESP_OK){
                 ov7670_release(&frame);
-                ESP_LOGI(TAG, "failed capture");
+                ESP_LOGW(TAG, "failed capture");
             }
         }
 
-        ESP_LOGI(TAG, "client seq_num request: %#x", client_msg[1]);
+        ESP_LOGD(TAG, "client seq_num request: %#x", client_msg[1]);
         for(uint8_t i = 0; i < IMAGE_SEGMENT_NUM; ++i){
             if(!(client_msg[1] & (1 << i))){
                 continue;
@@ -100,14 +101,14 @@ void app_main(void)
             int tmp = sendto(fd, msg, IMAGE_SEGMENT_SIZE + 2, 0, (struct sockaddr*) &client_addr, client_struct_length);
             if(tmp == -1){
                 if(errno != ENOMEM){
-                    ESP_LOGI(TAG, "send failed(%d)\n", errno);
+                    ESP_LOGD(TAG, "send failed(%d)\n", errno);
                     vTaskDelay(1 / portTICK_PERIOD_MS);
                     break;
                 }
                 ESP_LOGW(TAG, "ENOMEM occurred");
                 continue;
             }
-            ESP_LOGI(TAG, "sent seq_num: %u, size: %d bytes", i, tmp);
+            ESP_LOGD(TAG, "sent seq_num: %u, size: %d bytes", i, tmp);
         }
 
         uint8_t end_msg[2];

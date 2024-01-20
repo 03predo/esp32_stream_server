@@ -396,23 +396,6 @@ static struct regval_list ov7670_default_regs[] = {
     {0xFF, 0xFF},  
 };
 
-static struct regval_list ov7670_fmt_yuv422[] = {
-	{ COM7,     0x0                         },  /* Selects YUV mode */
-	{ RGB444,   0                           },  /* No RGB444 please */
-	{ COM1,     0                           },  /* CCIR601 */
-	{ COM15,    COM15_R00FF                 },
-    { MVFP,     MVFP_SUN                    }, 
-	{ COM9,     0x6A                        },  /* 128x gain ceiling; 0x8 is reserved bit */
-	{ MTX1,     0x80                        },  /* "matrix coefficient 1" */
-	{ MTX2,     0x80                        }, 	/* "matrix coefficient 2" */
-	{ MTX3,     0                           },  /* vb */
-	{ MTX4,     0x22                        }, 	/* "matrix coefficient 4" */
-	{ MTX5,     0x5e                        },  /* "matrix coefficient 5" */
-	{ MTX6,     0x80                        },  /* "matrix coefficient 6" */
-	{ COM13,    COM13_UVSAT                 },
-	{ 0xff,     0xff                        },  /* END MARKER */
-};
-
 static struct regval_list ov7670_fmt_rgb565[] = {
 	{ COM7,     COM7_FMT_RGB565             },	/* Selects RGB mode */
 	{ RGB444,   0                           },	/* No RGB444 please */
@@ -430,18 +413,6 @@ static struct regval_list ov7670_fmt_rgb565[] = {
 	{ 0xff,     0xff                        },  /* END MARKER */
 };
 
-
-static struct regval_list ov7670_vga[] = {
-    { COM3,                 0x00 },
-    { COM14,                0x00 },
-    { SCALING_XSC,          0x3A },
-    { SCALING_YSC,          0x35 },
-    { SCALING_DCWCTR,       0x11 },
-    { SCALING_PCLK_DIV,     0xF0 },
-    { SCALING_PCLK_DELAY,   0x02 },
-    { 0xff, 0xff },
-};
-
 static struct regval_list ov7670_qvga[] = {
     { COM3,                 0x04 },
     { COM14,                0x19 },
@@ -452,16 +423,4 @@ static struct regval_list ov7670_qvga[] = {
     { SCALING_PCLK_DELAY,   0x02 },
     { 0xff, 0xff },
 };
-
-static struct regval_list ov7670_qqvga[] = {
-	{ COM3,                 0x04 }, //DCW enable	
-	{ COM14,                0x1a }, //pixel clock divided by 4, manual scaling enable, DCW and PCLK controlled by register	
-	{ SCALING_XSC,          0x3a },	
-	{ SCALING_YSC,          0x35 },
-	{ SCALING_DCWCTR,       0x22 }, //downsample by 4	
-	{ SCALING_PCLK_DIV,     0xf2 }, //pixel clock divided by 4	
-	{ SCALING_PCLK_DELAY,   0x02 },
-    { 0xff, 0xff },
-};
-
 

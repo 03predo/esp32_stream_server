@@ -53,6 +53,6 @@ esp_err_t ll_pin_config(ov7670_t* ov7670);
 esp_err_t ll_i2s_config();
 esp_err_t ll_intr_alloc(ov7670_t* ov7670);
 bool ll_i2s_start(ov7670_t *ov7670);
-bool IRAM_ATTR ll_i2s_stop();
+bool ll_i2s_stop();
 void ll_vsync_intr_enable(bool en);
-size_t IRAM_ATTR ll_memcpy(uint8_t* dst, const uint8_t* src, size_t len);
+size_t ll_memcpy(uint8_t* dst, const uint8_t* src, size_t len);

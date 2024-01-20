@@ -85,10 +85,23 @@ static int ov7670_config()
     int ov7670_clkrc =  SCCB_Read(OV7670_SCCB_ADDR, CLKRC);
     
     if(ov7670_write_array(ov7670_qvga) != ESP_OK){
-        ESP_LOGI(TAG, "failed to set frame size to qvga");
+        ESP_LOGE(TAG, "failed to set frame size to qvga");
         return ESP_FAIL;
 
     }
+    /*
+     * This function dictates the timing of the HREF and VSYNC signals. The first two arguments are in pixels transmission times.
+     * Wich is how long it takes to transmit a single pixel.
+     * The first arguument indicates when the HREF signal will go high, so after 158 pixel times href will go high.
+     * The second value indicates when HREF will go low, so 14 pixel times href will go low. So this means
+     * at the start of a frame HREF will be low for a total of 144 cycles which is the correct value indicated
+     * by the data sheet.
+     *
+     * The third and fourth arguments are in line times and dictate the start and end of the VSYNC signal.
+     * The third argument indicates when VSYNC will go low, so 10 line times in VSYNC will go low.
+     * The fourth argument indicates when VSYNC will go high, so after 490 line times VSYNC will go high.
+     *
+     */
     ov7670_frame_control(158, 14, 10, 490);
     vTaskDelay(30 / portTICK_PERIOD_MS);
 
@@ -135,7 +148,6 @@ esp_err_t ov7670_capture(ov7670_frame_t* img){
         return ESP_FAIL;
     }
     size_t buf_cnt = 0; // update with correct name and type
-    size_t retry_num = 0;
 
     ov7670_event_t event;
     ov7670.state = OV7670_IDLE;
@@ -176,10 +188,10 @@ esp_err_t ov7670_capture(ov7670_frame_t* img){
                 ll_i2s_stop(&ov7670);
                 ll_vsync_intr_enable(0);
                 if(ov7670.frame.size != IMAGE_SIZE_BYTES){
-                    ESP_LOGE(TAG, "frame size doesn't equal image size: %u != %u", ov7670.frame.size, IMAGE_SIZE_BYTES);
+                    ESP_LOGW(TAG, "frame size doesn't equal image size: %u != %u", ov7670.frame.size, IMAGE_SIZE_BYTES);
                     return ESP_FAIL;
                 }
-                ESP_LOGI(TAG, "successful capture");
+                ESP_LOGD(TAG, "successful capture");
                 img->buf = ov7670.frame.buf;
                 img->size = ov7670.frame.size;
                 ov7670.frame_in_use = true;
@@ -202,11 +214,11 @@ esp_err_t ov7670_init(){
     camera_enable_out_clock(LEDC_TIMER_0, LEDC_CHANNEL_0, OV7670_PIN_XCLK, 10000000);
     SCCB_Init(OV7670_PIN_SIOD, OV7670_PIN_SIOC);
     if(SCCB_Probe_Addr(OV7670_SCCB_ADDR, 5) != ESP_OK){
-       ESP_LOGI(TAG, "failed to probe ov7670"); 
+       ESP_LOGE(TAG, "failed to probe ov7670"); 
        return ESP_FAIL;
     }
     if(ov7670_reset() != ESP_OK){
-        ESP_LOGI(TAG, "failed to reset ov7670");
+        ESP_LOGE(TAG, "failed to reset ov7670");
         return ESP_FAIL;
     }
     ESP_LOGI(TAG, "successfully probed ov7670");
@@ -221,7 +233,7 @@ esp_err_t ov7670_init(){
     
     ov7670.dma_buf = (uint8_t*)heap_caps_malloc(2 * DMA_HALF_BUF_SIZE_BYTES * sizeof(uint8_t), MALLOC_CAP_DMA);
     if(ov7670.dma_buf == NULL){
-        ESP_LOGI(TAG, "failed to alloc dma_buf");
+        ESP_LOGE(TAG, "failed to alloc dma_buf");
         heap_caps_free(ov7670.dma_buf);
         return ESP_FAIL;
     }
@@ -235,7 +247,7 @@ esp_err_t ov7670_init(){
     ov7670.frame_in_use = false;
     ov7670.dma = (lldesc_t *)heap_caps_malloc(DMA_NODE_CNT * sizeof(lldesc_t), MALLOC_CAP_DMA);
     if(ov7670.dma == NULL) {
-        ESP_LOGI(TAG, "failed to alloc dma");
+        ESP_LOGE(TAG, "failed to alloc dma");
         heap_caps_free(ov7670.dma);
         return ESP_FAIL;
     }
